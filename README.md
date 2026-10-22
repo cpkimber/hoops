@@ -1,31 +1,33 @@
-# Hoops quiz game: hosting guide
+# Class quiz games: setup guide
 
 ## Files
-- `index.html` is the whole game.
-- `classes/index.json` lists the classes (id + display name).
-- `classes/<id>.txt` is one question bank per class.
+- `index.html`: student entry. Reads `?class=<id>` and sends them to that class's game (or shows a class list).
+- `hoops.html`, `panels.html`: the two games.
+- `shared.js`: question loading and the quiz pop-up, used by both games.
+- `teacher.html`: teacher hub (settings, questions, preview, downloads).
+- `classes/index.json`: every class and its settings.
+- `classes/<id>.txt`: the questions for one class.
 
-## Deploy on GitHub Pages (free)
-1. Create a GitHub repo and upload everything in this folder (keep the `classes` folder).
-2. Settings > Pages > Deploy from a branch > `main` / root > Save.
-3. After a minute your site is at `https://<you>.github.io/<repo>/`.
-4. Give each class its link: `https://<you>.github.io/<repo>/?class=sample-class-a`
-   (the link without `?class=` shows a class picker).
+## First-time setup on GitHub
+1. Unzip this folder on your computer.
+2. In your repo, click Add file > Upload files and drag in `index.html`, `hoops.html`, `panels.html`, `teacher.html`, `shared.js`, and the `classes` folder. Same-named files (like the old `index.html`) are replaced. Commit.
+3. Settings > Pages: Deploy from a branch, `main`, `/ (root)`.
+4. After a minute or two, open `https://<you>.github.io/<repo>/teacher.html`.
 
-Cloudflare Pages and Netlify also work: drag the folder in and you are done.
+## Weekly workflow
+1. Open `teacher.html`, pick a class (or Add a class), choose the game, set the numbers, edit questions.
+2. Press Preview to play-test with your unsaved edits.
+3. Download the questions (.txt) and index.json.
+4. In GitHub, open the `classes` folder > Add file > Upload files, drop both in, commit.
+5. Wait 1 to 2 minutes, then give students their link: `https://<you>.github.io/<repo>/?class=<id>` (the hub shows it).
 
-## Editing questions
-1. Open `...?teacher` (or `...?class=<id>&teacher`) to see Teacher tools.
-2. Edit the text, press Try it to play-test, then Download .txt.
-3. Upload the file to `classes/<id>.txt` in your repo (GitHub: Add file > Upload files, same name replaces it).
-
-## Adding a class
-1. In Teacher tools, open Add a class, enter an id and name, press Add.
-2. Write the questions, download the .txt, upload it to `classes/`.
-3. Copy the generated text over `classes/index.json`.
+## Settings
+- Hoops: balls earned per correct answer.
+- Panel Pop: energy per correct answer, energy per cursor step, energy per swap.
+- Old index.json entries with no settings default to hoops, 2 balls, 100 energy, 1 per step, 3 per swap.
 
 ## Notes
-- Test locally with `python3 -m http.server`, then open http://localhost:8000. Opening index.html straight from disk can't load the class files.
-- Students need no accounts and nothing about them is collected. Best streak is stored only in their own browser.
-- Anyone can add `?teacher` to see the tools, but they can't change your site; only your repo changes the banks.
-- The question files are plain text and the correct answers are marked with `*`, so a determined student could read them. Fine for practice games, not for graded tests.
+- Test locally with `python3 -m http.server` and open http://localhost:8000/teacher.html. Opening files directly from disk won't load the class files.
+- The hub is not password protected, but it can't change your site; only your GitHub uploads can.
+- Question files are plain text with answers marked `*`, so a determined student could read them. Fine for practice, not for graded tests.
+- No student data is collected.

@@ -1,4 +1,4 @@
 [
-  { "id": "sample-class-a", "name": "Sample class A (science)" },
-  { "id": "sample-class-b", "name": "Sample class B (math)" }
+  { "id": "sample-class-a", "name": "Sample class A (puzzle)", "game": "panels", "balls": 2, "energy": 100, "moveCost": 1, "swapCost": 3 },
+  { "id": "sample-class-b", "name": "Sample class B (hoops)", "game": "hoops", "balls": 2, "energy": 100, "moveCost": 1, "swapCost": 3 }
 ]

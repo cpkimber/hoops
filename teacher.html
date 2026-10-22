@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Teacher hub</title>
+<style>
+:root{--bg:#f4f1ea;--fg:#1d1d1b;--mut:#6b675e;--card:#fff;--ac:#e8661c}
+@media (prefers-color-scheme:dark){:root{--bg:#17171a;--fg:#f1efe9;--mut:#9a968c;--card:#232328;--ac:#ff7b36}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,sans-serif;padding:20px 14px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.card{background:var(--card);border-radius:12px;padding:16px;width:100%;max-width:720px}
+h1,h2{margin:0 0 10px}h2{font-size:17px}
+label{display:block;margin:8px 0;font-size:14px;color:var(--mut)}
+input,select,textarea{display:block;width:100%;font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--mut);border-radius:8px;padding:8px;margin-top:4px}
+textarea{font:13px/1.4 ui-monospace,Menlo,monospace}
+button{font:600 15px system-ui,sans-serif;background:var(--ac);color:#fff;border:0;border-radius:10px;padding:10px 16px;margin:8px 8px 0 0;cursor:pointer}
+button.alt{background:transparent;color:var(--fg);border:1px solid var(--mut)}
+small,.note{color:var(--mut);font-size:13px}
+</style></head><body>
+<h1>Teacher hub</h1>
+<div class="card"><label>Class<select id="cs"></select></label>
+<details><summary>Add a class</summary><input id="ni" placeholder="id, e.g. physics-p3"><input id="nn" placeholder="Display name"><button id="na">Add class</button></details></div>
+<div class="card"><h2>Game and settings</h2>
+<label>Game<select id="gm"><option value="hoops">Basketball hoops</option><option value="panels">Panel Pop (puzzle)</option></select></label>
+<label>Class name shown to students<input id="nm"></label>
+<div id="g-hoops"><label>Balls earned per correct answer<input type="number" id="bl" min="1"></label></div>
+<div id="g-panels"><label>Energy earned per correct answer<input type="number" id="en" min="1"></label>
+<label>Energy cost to move the cursor one step<input type="number" id="mc" min="0"></label>
+<label>Energy cost to swap<input type="number" id="sc" min="0"></label></div></div>
+<div class="card"><h2>Questions</h2><textarea id="qt" rows="16" spellcheck="false"></textarea>
+<div id="qm" class="note"></div>
+<p class="note">One question per block, blank line between blocks. Start the correct answer with <code>* </code> and wrong answers with <code>- </code>. Answer order is shuffled in the game.</p></div>
+<div class="card"><h2>Try it, then publish</h2>
+<button id="pv">Preview in a new tab</button><button class="alt" id="dt">Download questions (.txt)</button><button class="alt" id="di">Download index.json (all classes)</button>
+<label>Student link<input id="lk" readonly></label><button class="alt" id="cp">Copy link</button>
+<p class="note">Preview uses your unsaved edits. To publish, upload the downloaded files into the <code>classes</code> folder of your GitHub repo (same names replace the old ones). Settings live in <code>index.json</code>, questions in <code>&lt;class id&gt;.txt</code>. Changes you have not uploaded are lost when you close this page.</p></div>
+<script src="shared.js"></script>
+<script>
+const $=id=>document.getElementById(id),D=QZ.DEF;
+const TPL='Your first question?\n* Correct answer\n- Wrong answer\n- Wrong answer\n- Wrong answer';
+let list=[],texts={},cur=null;
+const dl=(n,t)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/plain'}));a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+const vis=()=>{$('g-hoops').hidden=cur.game!=='hoops';$('g-panels').hidden=cur.game!=='panels'};
+function status(){const t=$('qt').value,n=t.split(/\n\s*\n/).filter(x=>x.trim()).length,k=QZ.parse(t).length;
+  $('qm').textContent=k+' valid question'+(k===1?'':'s')+(n>k?' ('+(n-k)+' skipped: each needs a question, 2+ answers, exactly one * answer)':'')}
+function opts(){$('cs').replaceChildren(...list.map(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name||c.id;return o}))}
+async function pick(id){
+  cur=list.find(c=>c.id===id);
+  Object.keys(D).forEach(k=>{if(cur[k]===undefined)cur[k]=D[k]});
+  $('cs').value=id;$('gm').value=cur.game;$('nm').value=cur.name||id;$('bl').value=cur.balls;$('en').value=cur.energy;$('mc').value=cur.moveCost;$('sc').value=cur.swapCost;
+  if(texts[id]===undefined){try{const r=await fetch('classes/'+encodeURIComponent(id)+'.txt',{cache:'no-cache'});texts[id]=r.ok?await r.text():TPL}catch(e){texts[id]=TPL}}
+  $('qt').value=texts[id];vis();status();
+  $('lk').value=new URL('index.html',location.href).href+'?class='+id;
+}
+['gm','nm','bl','en','mc','sc'].forEach(i=>$(i).oninput=()=>{cur.game=$('gm').value;cur.name=$('nm').value;cur.balls=+$('bl').value;cur.energy=+$('en').value;cur.moveCost=+$('mc').value;cur.swapCost=+$('sc').value;opts();$('cs').value=cur.id;vis()});
+$('qt').oninput=()=>{texts[cur.id]=$('qt').value;status()};
+$('cs').onchange=()=>pick($('cs').value);
+$('na').onclick=()=>{
+  const id=$('ni').value.toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'');
+  if(!id||list.some(c=>c.id===id))return alert('Pick a new, non-empty id.');
+  list.push(Object.assign({id,name:$('nn').value.trim()||id},D));texts[id]=TPL;opts();pick(id);
+};
+$('pv').onclick=()=>{try{localStorage.setItem('qzDraft:'+cur.id,JSON.stringify({cfg:cur,text:$('qt').value}))}catch(e){}window.open('index.html?class='+encodeURIComponent(cur.id)+'&preview','_blank')};
+$('dt').onclick=()=>dl(cur.id+'.txt',$('qt').value);
+$('di').onclick=()=>dl('index.json',JSON.stringify(list.map(c=>({id:c.id,name:c.name,game:c.game,balls:c.balls,energy:c.energy,moveCost:c.moveCost,swapCost:c.swapCost})),null,2));
+$('cp').onclick=()=>{$('lk').select();navigator.clipboard&&navigator.clipboard.writeText($('lk').value)};
+(async()=>{
+  try{const r=await fetch('classes/index.json',{cache:'no-cache'});if(r.ok)list=await r.json()}catch(e){}
+  if(!list.length)list=[Object.assign({id:'my-class',name:'My class'},D)];
+  opts();pick(list[0].id);
+})();
+</script></body></html>
