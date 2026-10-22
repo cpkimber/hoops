@@ -1,0 +1,17 @@
+What is 7 x 8?
+* 56
+- 54
+- 48
+- 63
+
+What is the derivative of x squared?
+* 2x
+- x
+- x squared
+- 2
+
+What is the value of pi to two decimal places?
+* 3.14
+- 3.41
+- 3.12
+- 3.18
