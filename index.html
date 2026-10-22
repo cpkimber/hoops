@@ -51,7 +51,7 @@ p{margin:0;color:var(--mut);font-size:14px;text-align:center;max-width:800px}
 </div>
 <div class="wrap"><canvas id="c" width="800" height="450"></canvas><div class="ov" id="qz" hidden></div></div>
 <button id="btn">Lock angle</button>
-<p>Up/Down (or drag) to aim · Space or the button to lock angle, then to shoot when the bar is in the sweet spot. Each shot uses a ball; answer questions to earn more.</p>
+<p>The angle swings up and down: press Space (or tap the button or court) to lock it. Then press again to stop the power bar and shoot. Each shot uses a ball; answer questions to earn more.</p>
 <details class="ed" id="ed" hidden><summary>Teacher tools</summary>
 <div style="margin-top:8px">Class <select id="cs"></select></div>
 <textarea id="qt" rows="14" spellcheck="false"></textarea>
@@ -67,7 +67,7 @@ p{margin:0;color:var(--mut);font-size:14px;text-align:center;max-width:800px}
 const cv=document.getElementById('c'),ctx=cv.getContext('2d'),btn=document.getElementById('btn');
 const W=800,H=450,G=900,GROUND=370,HX=700,HY=200,RR=22,BR=11,VMIN=300,VMAX=950;
 let px=110,angle=55,state='pick',pt=0,power=0,ball=null,rim=false,scored=false,wait=0,msg='',msgT=0,shake=0;
-let score=0,streak=0,best=0,mv=null,balls=3;
+let score=0,streak=0,best=0,mv=null,balls=3,at=0;
 try{best=+localStorage.getItem('hoopsBest')||0}catch(e){}
 const $=id=>document.getElementById(id);
 function ui(){$('bl').textContent=balls;$('sc').textContent=score;$('st').textContent=streak;$('bs').textContent=best}
@@ -86,17 +86,8 @@ btn.onclick=advance;
 addEventListener('keydown',e=>{
   if(state==='quiz'){const n=+e.key;if(n>=1&&n<=4){const b=qz.querySelectorAll('.opts button')[n-1];if(b)b.click()}return}
   if(e.code==='Space'){e.preventDefault();advance()}
-  if(state==='aim'){
-    if(e.code==='ArrowUp'||e.code==='KeyW')angle=Math.min(80,angle+2);
-    if(e.code==='ArrowDown'||e.code==='KeyS')angle=Math.max(20,angle-2);
-  }
 });
-let dragY=null;
-cv.onpointerdown=e=>{dragY=e.clientY};
-addEventListener('pointerup',()=>dragY=null);
-addEventListener('pointermove',e=>{
-  if(dragY!==null&&state==='aim'){angle=Math.max(20,Math.min(80,angle-(e.clientY-dragY)*0.25));dragY=e.clientY}
-});
+cv.onpointerdown=advance;
 function hitPoint(cx,cy){
   const dx=ball.x-cx,dy=ball.y-cy,d=Math.hypot(dx,dy),m=BR+3;
   if(d<m&&d>0){
@@ -129,6 +120,7 @@ function endShot(){
 let last=performance.now();
 function loop(now){
   const dt=Math.min(0.033,(now-last)/1000);last=now;
+  at+=dt;if(state==='aim')angle=20+60*(1-Math.abs(((at*0.6)%2)-1));
   if(state==='power'){pt+=dt;power=1-Math.abs(((pt*0.85)%2)-1)}
   if(state==='fly'&&ball){
     for(let i=0;i<4;i++)step(dt/4);
