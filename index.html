@@ -96,12 +96,21 @@ function hitPoint(cx,cy){
     if(vn<0){ball.vx-=1.55*vn*nx;ball.vy-=1.55*vn*ny;rim=true}
   }
 }
+function hitRect(x1,y1,x2,y2){
+  const cx=Math.max(x1,Math.min(x2,ball.x)),cy=Math.max(y1,Math.min(y2,ball.y));
+  let dx=ball.x-cx,dy=ball.y-cy,d=Math.hypot(dx,dy);
+  if(d>=BR)return;
+  if(d===0){dx=-1;dy=0;d=1;ball.x=x1}
+  const nx=dx/d,ny=dy/d;ball.x=cx+nx*BR;ball.y=cy+ny*BR;
+  const vn=ball.vx*nx+ball.vy*ny;
+  if(vn<0){ball.vx-=1.5*vn*nx;ball.vy-=1.5*vn*ny;rim=true}
+}
 function step(dt){
   const py=ball.y;
   ball.vy+=G*dt;ball.x+=ball.vx*dt;ball.y+=ball.vy*dt;
   hitPoint(HX-RR,HY);hitPoint(HX+RR,HY);
-  const bx=HX+RR+4;
-  if(ball.x+BR>bx&&ball.y>HY-85&&ball.y<HY+12&&ball.vx>0){ball.x=bx-BR;ball.vx*=-0.5;rim=true}
+  hitRect(HX+RR+2,HY-85,HX+RR+10,HY+15);
+  hitRect(HX+RR+20,HY-80,HX+RR+28,GROUND);
   if(!scored&&ball.vy>0&&py<HY&&ball.y>=HY&&Math.abs(ball.x-HX)<RR-3){
     scored=true;score++;streak++;shake=0.4;
     if(streak>best){best=streak;try{localStorage.setItem('hoopsBest',best)}catch(e){}}
